@@ -7,18 +7,18 @@ class Main
   def initialize args
     @args = args
 
-    $circle  = Circle.new(x: 0,   y: 0,   w: 300, h: 300, path: "sprites/square/red.png")
-    $square  =           {x: 640, y: 0,   w: 300, h: 300, path: "sprites/square/red.png"}
-    $ellipse = Circle.new(x: 640, y: 600, w: 640, h: 120, path: "sprites/square/red.png")
+    $circle  = Circle.new(x: 0, y: 0, w: 300, h: 300, path: "sprites/square/red.png")
+    $square  = { x: 640, y: 0,   w: 300, h: 300, path: "sprites/square/red.png" }
+    $ellipse = { x: 0,   y: 600, w: 640, h: 120, path: "sprites/square/red.png" }
+    $ellipse = $ellipse.to_circle
   end
-
 
   def tick args
     @args = args
 
-    $circle.angle  = Kernel.tick_count
-    $square.angle  = Kernel.tick_count
-    $ellipse.angle = Kernel.tick_count
+    # $circle.angle  = Kernel.tick_count
+    # $square.angle  = Kernel.tick_count
+    # $ellipse.angle = Kernel.tick_count
 
     if    inputs.right then $circle.x += 5
     elsif inputs.left  then $circle.x -= 5

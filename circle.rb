@@ -108,6 +108,10 @@ class Circle
   end
 end
 
+class Hash
+  def to_circle() = Circle.new(**self)
+end
+
 # TODO: literally all other methods
 # https://github.com/DragonRuby/dragonruby-game-toolkit-contrib/blob/main/dragon/geometry.rb
 module GTK
@@ -135,9 +139,3 @@ module GTK
     end
   end # Geometry
 end # GTK
-
-# class Hash
-#   def circle!
-#     self = Circle.new(**self)
-#   end
-# end
