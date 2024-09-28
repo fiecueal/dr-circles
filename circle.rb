@@ -46,27 +46,18 @@ class Circle
           angle: i / 4,
         }
       end
-    end
-
-    # simulate dynamic property creation like with hashes
-    # `self.class.send` is screwing with access
-    # to the `path` & `path=` methods so skip it
-    args.each do |k, v|
-      next if k == :path
-      self.class.send :attr_accessor, k.to_sym
-      instance_variable_set :"@#{k}", v
-    end
-
+    end # :circle rt creation
+    
     # errors might start flying if these aren't set on init
-    @x ||= 0
-    @y ||= 0
-    @w ||= 0
-    @h ||= 0
+    @x = @y = @w = @h = 0
 
     # `@path` is actually the render target and the actual sprite dir
     # is stored in @path_dir (assigned in `path=` method)
     @path = :"circle#{@@instances}"
-    self.path = args.path if args.path
+
+    # `<<` implemented to handle edge cases & let the class have the ability
+    # to gain new properties after instantiation
+    self << args
   end
 
   def rx()    = @w / 2
@@ -106,7 +97,31 @@ class Circle
     # puts "path getter reached"
     @path_dir
   end
-end
+
+  # simulate dynamic property creation like with hashes
+  # `self.class.send` overwrites the `path` & `path=` methods so skip it
+  # same goes for [rx, ry, rx=, ry=]
+  # since doing `foo.<new property> = bar` on the class throws an error,
+  # this gives the class the ability to have new properties without error
+  # by doing `foo << { <new property>: bar }` instead
+  def << args
+    args.each do |k, v|
+      case k
+      when :path, :path=
+        self.path = v
+        next
+      when :rx, :rx=
+        self.rx = v
+        next
+      when :ry, :ry=
+        self.ry = v
+        next
+      end
+      self.class.send :attr_accessor, k.to_sym
+      instance_variable_set :"@#{k}", v
+    end
+  end
+end # Circle
 
 class Hash
   def to_circle() = Circle.new(**self)
