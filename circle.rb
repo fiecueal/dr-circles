@@ -65,34 +65,25 @@ class Circle
   def rx=(rx) = @w = rx * 2
   def ry=(ry) = @h = ry * 2
 
-  # where the rendering magic happens
-  # blend modes do the work of cutting out the corners
+  # sets up the render target that will be used as the sprite
+  # also assigns the given sprite dir in `@path_dir`
+  # and leaves `@path` to hold the render target name (assigned on init)
   def path=(path)
     # puts "path setter reached"
     output = $args.outputs[@path]
     output.w = @w
     output.h = @h
     output.sprites.clear # not sure if this is necessary
-    output.sprites << [{
-                        x: 0,
-                        y: 0,
-                        w: @w,
-                        h: @h,
-                        path: :circle,
-                      }, {
-                        x: 0,
-                        y: 0,
-                        w: @w,
-                        h: @h,
-                        path: path,
-                        blendmode_enum: 4,
-                      }]
+    output.sprites << [
+      { x: 0, y: 0, w: @w, h: @h, path: :circle },
+      { x: 0, y: 0, w: @w, h: @h, path: path, blendmode_enum: 4 },
+    ]
     @path_dir = path
   end
 
-  # make the class quack the sprite path instead of the render target
-  # for some reason though, using the circle in `outputs.sprites` uses
-  # uses the actual `@path` value instead of this method... dr voodoo
+  # make the class quack the sprite dir instead of the render target
+  # for some reason though, `outputs.sprites` uses the actual `@path`
+  # value instead of this method... dr voodoo
   def path
     # puts "path getter reached"
     @path_dir
@@ -132,9 +123,9 @@ end
 module GTK
   module Geometry
 
-    # TODO: tolerance, anchor_x|y, ellipses with different radii on each axis
-    # `intersect_rect?` code is undocumented so I'm just guessing how it works
-    # based on `inside_rect?` (documented in the docs but not the github repo)
+    # TODO: tolerance, anchor_x|y, ellipse collision
+    # `intersect_rect?` code is undocumented in github repo
+    # functionality based on `inside_rect?` and the docs
     def intersect_rect? outer, tolerance = 0.1
       Geometry.intersect_rect? self, outer, tolerance
     end
@@ -150,13 +141,12 @@ module GTK
 
       circle_1 = rect_1.is_a?(Circle)
       circle_2 = rect_2.is_a?(Circle)
-      # # no circles - rects intersect based on prev condition
+      # no circles - rects intersect based on prev condition
       return true unless circle_1 || circle_2
 
       if circle_1 && circle_2
         return false # TODO
-      elsif circle_1
-      else
+      end
 
       # 1 return true if one of the ellipse's axes is crossed
       # 2 check which quadrant the collision is in
@@ -178,10 +168,10 @@ module GTK
         return (point[0] - (rect_1.x + rect_1.rx))**2.to_f / rect_1.rx**2 +
                (point[1] - (rect_1.y + rect_1.ry))**2.to_f / rect_1.ry**2 < 1
       else # rect_2 circle
-        return true if rect_1.left   < rect_2.x + rect_2.w / 2 &&
-                       rect_1.right  > rect_2.x + rect_2.w / 2 ||
-                       rect_1.bottom < rect_2.y + rect_2.h / 2 &&
-                       rect_1.top    > rect_2.y + rect_2.h / 2
+        return true if rect_1.left   < rect_2.x + rect_2.rx &&
+                       rect_1.right  > rect_2.x + rect_2.rx ||
+                       rect_1.bottom < rect_2.y + rect_2.ry &&
+                       rect_1.top    > rect_2.y + rect_2.ry
 
         point = case rect_1.angle_to rect_2
                 when 0..90    then [ rect_1.right, rect_1.top    ]
