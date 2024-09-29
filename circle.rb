@@ -142,14 +142,21 @@ module GTK
     def self.intersect_rect? rect_1, rect_2, tolerance = 0.1
       return nil unless rect_1 && rect_2
 
-      if rect_1.is_a?(Circle) && rect_2.is_a?(Circle)
-        return false
-      elsif rect_1.is_a?(Circle)
-        return false
-      elsif rect_2.is_a?(Circle)
-        return false
+      # bounding boxes don't intersect
+      return false if rect_1.left   > rect_2.right ||
+                      rect_1.right  < rect_2.left  ||
+                      rect_1.bottom > rect_2.top   ||
+                      rect_1.top    < rect_2.bottom
+
+      circle_1 = rect_1.is_a?(Circle)
+      circle_2 = rect_2.is_a?(Circle)
+      # # no circles - rects intersect based on prev condition
+      return true unless circle_1 || circle_2
+
+      if circle_1 && circle_2
+        return false # TODO
+      elsif circle_1
       else
-        super
       end
     end
   end # Geometry
