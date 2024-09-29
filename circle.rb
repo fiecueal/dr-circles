@@ -157,6 +157,41 @@ module GTK
         return false # TODO
       elsif circle_1
       else
+
+      # 1 return true if one of the ellipse's axes is crossed
+      # 2 check which quadrant the collision is in
+      # 3 get rect corner point
+      # 4 true if rect point is in ellipse
+      if circle_1 # rect_1 circle
+        return true if rect_2.left   < rect_1.x + rect_1.rx &&
+                       rect_2.right  > rect_1.x + rect_1.rx ||
+                       rect_2.bottom < rect_1.y + rect_1.ry &&
+                       rect_2.top    > rect_1.y + rect_1.ry
+
+        point = case rect_2.angle_to rect_1
+                when 0..90    then [ rect_2.right, rect_2.top    ]
+                when 91..180  then [ rect_2.left,  rect_2.top    ]
+                when 181..270 then [ rect_2.left,  rect_2.bottom ]
+                when 271..360 then [ rect_2.right, rect_2.bottom ]
+                end
+
+        return (point[0] - (rect_1.x + rect_1.rx))**2.to_f / rect_1.rx**2 +
+               (point[1] - (rect_1.y + rect_1.ry))**2.to_f / rect_1.ry**2 < 1
+      else # rect_2 circle
+        return true if rect_1.left   < rect_2.x + rect_2.w / 2 &&
+                       rect_1.right  > rect_2.x + rect_2.w / 2 ||
+                       rect_1.bottom < rect_2.y + rect_2.h / 2 &&
+                       rect_1.top    > rect_2.y + rect_2.h / 2
+
+        point = case rect_1.angle_to rect_2
+                when 0..90    then [ rect_1.right, rect_1.top    ]
+                when 91..180  then [ rect_1.left,  rect_1.top    ]
+                when 181..270 then [ rect_1.left,  rect_1.bottom ]
+                when 271..360 then [ rect_1.right, rect_1.bottom ]
+                end
+
+        return (point[0] - (rect_2.x + rect_2.rx))**2.to_f / rect_2.rx**2 +
+               (point[1] - (rect_2.y + rect_2.ry))**2.to_f / rect_2.ry**2 < 1
       end
     end
   end # Geometry
