@@ -10,7 +10,7 @@ main attractions:
   a little rough around the edges (literally), but it only has like 720 edges
   to work with and also now you don't need to have an unnecessary
   10kb circle.png (smallest i could make a 1280x1280 circle.png file)
-  to the project so cut it some slack ¯\_(ツ)_/¯
+  in the project so cut it some slack ¯\_(ツ)_/¯
 - sprites are cut into shape like with triangle primitives,
   except the ellipses don't require extra properties to be initialized
   beyond what rects need to initialize before they work properly
@@ -148,41 +148,29 @@ module GTK
         return false # TODO
       end
 
-      # 1 return true if one of the ellipse's axes is crossed
-      # 2 check which quadrant the collision is in
-      # 3 get rect corner point
-      # 4 true if rect point is in ellipse
-      if circle_1 # rect_1 circle
-        return true if rect_2.left   < rect_1.x + rect_1.rx &&
-                       rect_2.right  > rect_1.x + rect_1.rx ||
-                       rect_2.bottom < rect_1.y + rect_1.ry &&
-                       rect_2.top    > rect_1.y + rect_1.ry
+      # outstandingly digestible explanation of rect-ellipse collisions:
+      # https://gamedev.stackexchange.com/questions/109393/how-do-i-check-for-collision-between-an-ellipse-and-a-rectangle
+      # point-ellipse intersection formula & explanation:
+      # https://www.geeksforgeeks.org/check-if-a-point-is-inside-outside-or-on-the-ellipse/
+      circle, rect  = circle_1 ? [rect_1, rect_2] : [rect_2, rect_1]
+      circle_x_axis = circle.y + circle.ry
+      circle_y_axis = circle.x + circle.rx
 
-        point = case rect_2.angle_to rect_1
-                when 0..90    then [ rect_2.right, rect_2.top    ]
-                when 91..180  then [ rect_2.left,  rect_2.top    ]
-                when 181..270 then [ rect_2.left,  rect_2.bottom ]
-                when 271..360 then [ rect_2.right, rect_2.bottom ]
-                end
+      # collision guaranteed if any ellipse axis crossed
+      return true if rect.left   < circle_y_axis &&
+                     rect.right  > circle_y_axis ||
+                     rect.bottom < circle_x_axis &&
+                     rect.top    > circle_x_axis
 
-        return (point[0] - (rect_1.x + rect_1.rx))**2.to_f / rect_1.rx**2 +
-               (point[1] - (rect_1.y + rect_1.ry))**2.to_f / rect_1.ry**2 < 1
-      else # rect_2 circle
-        return true if rect_1.left   < rect_2.x + rect_2.rx &&
-                       rect_1.right  > rect_2.x + rect_2.rx ||
-                       rect_1.bottom < rect_2.y + rect_2.ry &&
-                       rect_1.top    > rect_2.y + rect_2.ry
+      point = case rect.angle_to circle
+              when 0..90    then [ rect.right, rect.top    ]
+              when 91..180  then [ rect.left,  rect.top    ]
+              when 181..270 then [ rect.left,  rect.bottom ]
+              else               [ rect.right, rect.bottom ]
+              end
 
-        point = case rect_1.angle_to rect_2
-                when 0..90    then [ rect_1.right, rect_1.top    ]
-                when 91..180  then [ rect_1.left,  rect_1.top    ]
-                when 181..270 then [ rect_1.left,  rect_1.bottom ]
-                when 271..360 then [ rect_1.right, rect_1.bottom ]
-                end
-
-        return (point[0] - (rect_2.x + rect_2.rx))**2.to_f / rect_2.rx**2 +
-               (point[1] - (rect_2.y + rect_2.ry))**2.to_f / rect_2.ry**2 < 1
-      end
+      return (point[0] - circle_y_axis)**2.to_f / circle.rx**2 +
+             (point[1] - circle_x_axis)**2.to_f / circle.ry**2 < 1
     end
   end # Geometry
 end # GTK
